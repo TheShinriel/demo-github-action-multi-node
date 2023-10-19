@@ -1,0 +1,36 @@
+name: Exécuter un script avec plusieurs node
+
+# L'action s'activera à chaque push sur le repository
+on: [push]
+
+jobs:
+  multi-node:
+    # On tourne sur une machine ubuntu
+    runs-on: ubuntu-latest
+
+    # On définit une stratégie pour testers plusieurs version de node sous forme de tableau (= matrix)
+    # Pour rappel seul les versions pairs de Node sont stables
+    strategy:
+      matrix:
+        node: [14, 16, 18]
+
+    # On donne un nom à notre job en fonction de la version de node
+    name: Node ${{ matrix.node }} sample
+
+    steps:
+      - name: 🛑 Annule les précédents workflows
+        uses: styfle/cancel-workflow-action@0.9.1
+      - name: ⬇️ Récupère le repository
+        uses: actions/checkout@v2
+      - name: 🛠 Installe la bonne version de node
+        uses: actions/setup-node@v3
+        with:
+          # On récupère la version de node dans la matrice
+          node-version: ${{ matrix.node }}
+      - name: 📱 Installe les dépendances
+        # npm ci, prends les dépendances du package-lock.json et non du package.json
+        # Ainsi on se base sur les dernières dépendances installées en local
+        run: npm ci
+      - name: 🚀 Exécute le script
+        # On exécute simplement le script
+        run: node simpleScript.ts
